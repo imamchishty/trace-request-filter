@@ -62,6 +62,10 @@ public class RequestIdFilter implements Filter {
 
     }
 
+    public String getRequestIdKey() {
+        return requestIdKey;
+    }
+
     public class HeaderWrapper extends HttpServletRequestWrapper {
 
         public HeaderWrapper(HttpServletRequest request) {
