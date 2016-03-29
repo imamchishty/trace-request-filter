@@ -54,7 +54,7 @@ public class RequestIdFilter implements Filter {
         headerWrapper.addHeader(requestIdKey, UUID.randomUUID().toString());
 
         // as you were
-        chain.doFilter(request, response);
+        chain.doFilter(headerWrapper, response);
     }
 
     @Override
