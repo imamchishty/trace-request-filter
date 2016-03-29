@@ -8,7 +8,7 @@ import java.util.*;
 
 /**
  * <pre>
- *     This servlet filter attempts to create a 'request-id' header property
+ *     This servlet filter attempts to create a 'request-id' (key can be changed via constructor) header property
  *     if this hasn't already been set. The request-id is unique and can be used
  *     for many purposes such as building metrics (user request count), auditing,
  *     logging, exception handling etc.
@@ -50,11 +50,16 @@ public class RequestIdFilter implements Filter {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
 
-        HeaderWrapper headerWrapper = new HeaderWrapper(httpRequest);
-        headerWrapper.addHeader(requestIdKey, UUID.randomUUID().toString());
+        if(((HttpServletRequest) request).getHeader(requestIdKey) == null) {
 
-        // as you were
-        chain.doFilter(headerWrapper, response);
+            HeaderWrapper headerWrapper = new HeaderWrapper(httpRequest);
+            headerWrapper.addHeader(requestIdKey, UUID.randomUUID().toString());
+
+            // as you were
+            chain.doFilter(headerWrapper, response);
+        }
+
+        chain.doFilter(request, response);
     }
 
     @Override
