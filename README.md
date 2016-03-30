@@ -16,14 +16,14 @@ If you're using Spring then [thread-context-aspect](https://github.com/imamchish
 
 Within the `<web-app>` element you add the following:
 
-  <filter> 
-    <filter-name>requestIdFilter</filter-name>
-    <filter-class>com.shedhack.filter.requestid.RequestIdFilter</filter-class> 
-  </filter> 
-  <filter-mapping> 
-    <filter-name>requestIdFilter</filter-name>
-    <url-pattern>/*</url-pattern> 
-  </filter-mapping> 
+	<filter> 
+    		<filter-name>requestIdFilter</filter-name>
+    		<filter-class>com.shedhack.filter.requestid.RequestIdFilter</filter-class> 
+  	</filter> 
+  	<filter-mapping> 
+    		<filter-name>requestIdFilter</filter-name>
+    		<url-pattern>/*</url-pattern> 
+  	</filter-mapping> 
 
 ### Spring
 
