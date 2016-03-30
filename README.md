@@ -4,9 +4,11 @@
 
 ## Introduction
 
+The purpose of this library is add a unqiue request Id to the HTTP header of a request object.
+
 __Request Id__: this library was designed for building restful services. Generally each user has a session Id, although this is good, I prefer to have a unique identifier for each request. This lends itself to easy auditing and monitoring. So if we have a unqiue request Id and that request is stored for auditing/logging purposes we can easily use this ID as a foreign key. We could possibly tie this with exceptions, please refer to [exception-core](https://github.com/imamchishty/exception-core/) for details.
 
-The `request-id` property will be added to the HTTP Servlet Request object, only if this doesn't already exist. It many circumstances it may be preferable to use a HTTP server to do this for you, e.g. via nginx. If it isn't set then the filter will set the `request-id` property, unless you pass in a different key via the constructor.
+The `request-id` property will be added to the HTTP Servlet Request object (as part of the header), only if this doesn't already exist. It many circumstances it may be preferable to use a HTTP server to do this for you, e.g. via nginx. If it isn't set then the filter will set the `request-id` property, unless you pass in a different key via the constructor.
 
 If you're using Spring then [thread-context-aspect](https://github.com/imamchishty/thread-context-aspect) and [thread-context-handler](https://github.com/imamchishty/thread-context-handler) would be able to use the `request-id` and add more contextual details to the thread context. Please refer to those projects for more details.
 
