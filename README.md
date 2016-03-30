@@ -4,23 +4,57 @@
 
 ## Introduction
 
-## Setup
+__Request Id__: this library was designed for building restful services. Generally each user has a session Id, although this is good, I prefer to have a unique identifier for each request. This lends itself to easy auditing and monitoring. So if we have a unqiue request Id and that request is stored for auditing/logging purposes we can easily use this ID as a foreign key. We could possibly tie this with exceptions, please refer to [exception-core](https://github.com/imamchishty/exception-core/) for details.
+
+The `request-id` property will be added to the HTTP Servlet Request object, only if this doesn't already exist. It many circumstances it may be preferable to use a HTTP server to do this for you, e.g. via nginx. If it isn't set then the filter will set the `request-id` property, unless you pass in a different key via the constructor.
+
+If you're using Spring then [thread-context-aspect](https://github.com/imamchishty/thread-context-aspect) and [thread-context-handler](https://github.com/imamchishty/thread-context-handler) would be able to use the `request-id` and add more contextual details to the thread context. Please refer to those projects for more details.
+
+### web.xml
+
+Within the `<web-app>` element you add the following:
+
+  <filter> 
+    <filter-name>requestIdFilter</filter-name>
+    <filter-class>com.shedhack.filter.requestid.RequestIdFilter</filter-class> 
+  </filter> 
+  <filter-mapping> 
+    <filter-name>requestIdFilter</filter-name>
+    <url-pattern>/*</url-pattern> 
+  </filter-mapping> 
+
+### Spring
+
+    @Bean
+    public FilterRegistrationBean filterRegistrationBean() {
+        FilterRegistrationBean filter = new FilterRegistrationBean();
+        filter.setFilter(new RequestIdFilter());
+        return filter;
+    }
 
 ## Dependencies
 
+The servlet-api is used, the actual implementation is your projects choice.
+
+        <!-- Only using the API, clients will need to provide concrete implementations of their choice -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
 ## Java requirements
 
-## Example
-
+Project has been built using JDK 1.8.
 
 ## Maven central
 
-This artifact is available in Maven Central (link provide at the top of the page).
+This artifact is available in [Maven Central](https://maven-badges.herokuapp.com/maven-central/com.shedhack.thread/filter-request-id).
  
     <dependency>
         <groupId>com.shedhack.filter</groupId>
         <artifactId>filter-request-id</artifactId>
-        <version>1.0.0</version>
+        <version>x.x.x</version>
     </dependency>    
 
 
