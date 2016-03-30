@@ -1,6 +1,6 @@
 # filter-request-id
 
-[![Build Status](https://travis-ci.org/imamchishty/filter-request-id.svg?branch=master "filter-request-id")](https://travis-ci.org/imamchishty/filter-request-id) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.shedhack.thread/filter-request-id/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.shedhack.thread/filter-request-id)
+[![Build Status](https://travis-ci.org/imamchishty/filter-request-id.svg?branch=master "filter-request-id")](https://travis-ci.org/imamchishty/filter-request-id) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.shedhack.filter/filter-request-id/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.shedhack.filter/filter-request-id)
 
 ## Introduction
 
@@ -51,7 +51,7 @@ Project has been built using JDK 1.8.
 
 ## Maven central
 
-This artifact is available in [Maven Central](https://maven-badges.herokuapp.com/maven-central/com.shedhack.thread/filter-request-id).
+This artifact is available in [Maven Central](https://maven-badges.herokuapp.com/maven-central/com.shedhack.filter/filter-request-id).
  
     <dependency>
         <groupId>com.shedhack.filter</groupId>
