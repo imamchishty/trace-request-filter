@@ -12,6 +12,11 @@ The `request-id` property will be added to the HTTP Servlet Request object (as p
 
 If you're using Spring then [thread-context-aspect](https://github.com/imamchishty/thread-context-aspect) and [thread-context-handler](https://github.com/imamchishty/thread-context-handler) would be able to use the `request-id` and add more contextual details to the thread context. Please refer to those projects for more details.
 
+## Thread Local
+
+The request Id is also stored as a Thread Local variable. A static library, [Thread Local Utility](https://github.com/imamchishty/threadlocal-string-utility) has been used to manage it (set/get/remove).
+You can use this library to get access to the variable.
+
 ### web.xml
 
 Within the `<web-app>` element you add the following:
@@ -38,12 +43,22 @@ Within the `<web-app>` element you add the following:
 
 The servlet-api is used, the actual implementation is your projects choice.
 
-        <!-- Only using the API, clients will need to provide concrete implementations of their choice -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-        </dependency>
+    <!-- Only using the API, clients will need to provide concrete implementations of their choice -->
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+    </dependency>
+        
+In order to make the request Id available statically I'm using the following library to create the ThreadLocal variable:
+        
+    <dependency>
+        <groupId>com.shedhack.thread</groupId>
+        <artifactId>threadlocal-string-utility</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+    
+For further details refer to the project, [Thread String Utility](https://github.com/imamchishty/threadlocal-string-utility).    
 
 ## Java requirements
 

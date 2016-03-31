@@ -1,5 +1,7 @@
 package com.shedhack.filter.requestid;
 
+import com.shedhack.thread.threadlocal.utility.ThreadLocalUtility;
+
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -18,6 +20,13 @@ import java.util.*;
  *
  *     The request-id http header property is the default name. You can change this
  *     via a constructor arg.
+ *
+ *     To enable easy access to the request Id value it gets stored on as a ThreadLocal variable.
+ *     Please note that the ThreadLocal gets cleaned up.
+ *
+ *     In order to store as a ThreadLocal this filter uses {@link com.shedhack.thread.threadlocal.utility.ThreadLocalUtility}.
+ *     Please note that this dependency is also available in Maven Central, please refer to
+ *     https://github.com/imamchishty/threadlocal-string-utility for more details about its use.
  * </pre>
  *
  * @author imamchishty
@@ -48,18 +57,27 @@ public class RequestIdFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-
-        if(((HttpServletRequest) request).getHeader(requestIdKey) == null) {
-
+        try {
+            HttpServletRequest httpRequest = (HttpServletRequest) request;
+            String requestId = ((HttpServletRequest) request).getHeader(requestIdKey);
             HeaderWrapper headerWrapper = new HeaderWrapper(httpRequest);
-            headerWrapper.addHeader(requestIdKey, UUID.randomUUID().toString());
 
-            // as you were
+            if (requestId == null) {
+                requestId = UUID.randomUUID().toString();
+                headerWrapper.addHeader(requestIdKey, requestId);
+            }
+
+            // thread local
+            ThreadLocalUtility.set(requestId);
+
+            // continue down the chain
             chain.doFilter(headerWrapper, response);
         }
+        finally {
 
-        chain.doFilter(request, response);
+            // clean up
+            ThreadLocalUtility.clear();
+        }
     }
 
     @Override
@@ -70,6 +88,7 @@ public class RequestIdFilter implements Filter {
     public String getRequestIdKey() {
         return requestIdKey;
     }
+
 
     public class HeaderWrapper extends HttpServletRequestWrapper {
 
