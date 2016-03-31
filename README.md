@@ -15,7 +15,7 @@ If you're using Spring then [thread-context-aspect](https://github.com/imamchish
 ## Thread Local
 
 The request Id is also stored as a Thread Local variable. A static library, [Thread Local Utility](https://github.com/imamchishty/threadlocal-string-utility) has been used to manage it (set/get/remove).
-You can use this library to get access to the variable.
+You can use this library to get access to the variable. The filter will also clear the TL. 
 
 ### web.xml
 
