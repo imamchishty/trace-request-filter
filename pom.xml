@@ -4,7 +4,7 @@
 
     <groupId>com.shedhack.filter</groupId>
     <artifactId>filter-request-id</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
 
     <description>Servlet filter that creates a unique Request ID if one not available in the header.</description>
     <url>https://github.com/imamchishty/filter-request-id</url>
@@ -33,7 +33,7 @@
         <connection>scm:git:git@github.com:imamchishty/filter-request-id.git</connection>
         <developerConnection>scm:git:git@github.com:imamchishty/filter-request-id.git</developerConnection>
         <url>git@github.com:imamchishty/filter-request-id.git</url>
-        <tag>HEAD</tag>
+        <tag>filter-request-id-1.0.2</tag>
     </scm>
 
     <distributionManagement>
