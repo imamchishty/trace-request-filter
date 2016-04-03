@@ -41,6 +41,9 @@ import java.util.*;
  *     To enable easy access to the request Id value it gets stored on as a ThreadLocal variable.
  *     Please note that the MDC and the ThreadLocal gets cleaned up in this filter.
  *
+ *
+ * The MDC setup is done via the setMDC(RequestModel model) method. If you wish
+ * you could override this method whilst extending the RequestIdFilter.
  * </pre>
  *
  * @author imamchishty
@@ -94,12 +97,11 @@ public class RequestIdFilter implements Filter {
             }
 
             // Set the thread local for access later.
-            RequestHelper.set(new RequestModel(requestId, groupId, headerWrapper.getHeader(CALLER_ID)));
+            RequestModel model = new RequestModel(requestId, groupId, headerWrapper.getHeader(CALLER_ID));
+            RequestHelper.set(model);
 
-            // Also set MDC for supported loggers:
-            MDC.put(GROUP_ID, groupId);
-            MDC.put(REQUEST_ID, requestId);
-            MDC.put(CALLER_ID, headerWrapper.getHeader(CALLER_ID));
+            // set MDC
+            setMDC(model);
 
             // continue down the chain
             chain.doFilter(headerWrapper, response);
@@ -111,6 +113,18 @@ public class RequestIdFilter implements Filter {
             MDC.clear();
         }
     }
+
+    /**
+     * Sets the MDC
+     */
+    public void setMDC(RequestModel model) {
+
+        // Also set MDC for supported loggers:
+        MDC.put(GROUP_ID, model.getGroupId());
+        MDC.put(REQUEST_ID, model.toString());
+        MDC.put(CALLER_ID, model.getCallerId());
+    }
+
 
     @Override
     public void destroy() {
