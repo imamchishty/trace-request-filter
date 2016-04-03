@@ -43,20 +43,6 @@ public class RequestIdFilterTest {
     }
 
     @Test
-    public void void_should_use_provided_request_id_key() {
-
-        // Arrange
-        String req = "REQ_ID";
-
-        // Act
-        RequestIdFilter filter = new RequestIdFilter(req);
-
-        // Assert
-        assertEquals(req, filter.getRequestIdKey());
-    }
-
-
-    @Test
     public void should_add_requestId_to_headers() throws IOException, ServletException {
 
         // Arrange
