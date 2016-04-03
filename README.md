@@ -11,17 +11,17 @@ The three properties are:
 - __request-id__: the servlet filter attempts to create a 'request-id' header property 
 if this hasn't already been set. The request-id is unique for the given request and can be used
 for many purposes such as building metrics (user request count), auditing,
-logging, exception handling etc. The Id is based on {@link UUID} which guarantees an
-incredibly low chance of a collision. Thus the Id can be used to search for particular requests.
+logging, exception handling etc. The Id is create by the Java `UUID` class, which guarantees an
+incredibly low chance of a collision (thus the Id can be used to search for particular requests).
 
-__group-id__: in the world of soa and micro-services, services are not isolated. Services almost
+- __group-id__: in the world of soa and micro-services, services are not isolated. Services almost
 always call other distributed services. Let's take an example, a user submits a request on his
 iphone app. The app calls a backend service which itself calls multiple services. In order to see
 which services were called you could use a 'group-id'. The group Id is a unique parent/wrapper Id.
 Searching for just this in your centralised logs would show all service calls. This is not to be
 confused with the request Id which is the Id for a single service call.
 
-__'caller-id'__: as mentioned above services interact with other services. One service is the client
+- __'caller-id'__: as mentioned above services interact with other services. One service is the client
 whilst the other is provider (server). The interaction between the two services can logged
 using the use of a 'caller-id'. When service A calls service B, the caller-id that I'm
 alluding to is the request-id that A originally had set in its header. The HTTP request
@@ -31,12 +31,24 @@ filter or by a web server.
 To enable easy access to the request Id value it gets stored on as a ThreadLocal variable.
 Please note that the MDC and the ThreadLocal gets cleaned up in this filter.
 
-If you're using Spring then [thread-context-aspect](https://github.com/imamchishty/thread-context-aspect) and [thread-context-handler](https://github.com/imamchishty/thread-context-handler) would be able to use the `request-id` and add more contextual details to the thread context. Please refer to those projects for more details.
+If you're using Spring then [thread-context-aspect](https://github.com/imamchishty/thread-context-aspect) and [thread-context-handler](https://github.com/imamchishty/thread-context-handler) would be able to use the properties and add more contextual details to the thread context. Please refer to those projects for more details.
 
 ## Thread Local
 
-The request Id is also stored as a Thread Local variable. A static library, [Thread Local Utility](https://github.com/imamchishty/threadlocal-string-utility) has been used to manage it (set/get/remove).
+The request Id is also stored as a Thread Local variable. A static library, [Thread Local Utility](https://github.com/imamchishty/filter-request-id/blob/master/src/main/java/com/shedhack/filter/requestid/helper/RequestHelper.java) has been used to manage it (set/get/remove). The object stored in the TL is a [__RequestModel__](https://github.com/imamchishty/filter-request-id/blob/master/src/main/java/com/shedhack/filter/requestid/model/RequestModel.java).
 You can use this library to get access to the variable. The filter will also clear the TL. 
+
+## MDC
+
+Using slf4j's MDC the following properties are 
+
+- __request-id__
+- __group-id__
+- __caller-id__
+
+These are set via the `setMDC(RequestModel model)` method. You could override this whilst extending RequestIdFilter. 
+
+The MDC is cleared by the filter.
 
 ### web.xml
 
