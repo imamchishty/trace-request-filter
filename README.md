@@ -4,7 +4,7 @@
 
 ## Introduction
 In distributed systems it is difficult to trace the execution paths of multiple services.
-This filter will set several header properties, MDC for logging and will also provide an easy to access ThreadLocal {@link RequestHelper} utility class.
+This filter will set several header properties, MDC for logging and will also provide an easy to access ThreadLocal utility class.
 
 The three properties are:
 
@@ -29,7 +29,7 @@ will therefore contain the caller-id and the group-id. The request-id would be g
 filter or by a web server.
  
 To enable easy access to the request Id value it gets stored on as a ThreadLocal variable.
-Please note that the MDC and the ThreadLocal gets cleaned up in this filter.
+Please note that the MDC and the ThreadLocal get cleaned up in this filter.
 
 If you're using Spring then [thread-context-aspect](https://github.com/imamchishty/thread-context-aspect) and [thread-context-handler](https://github.com/imamchishty/thread-context-handler) would be able to use the properties and add more contextual details to the thread context. Please refer to those projects for more details.
 
