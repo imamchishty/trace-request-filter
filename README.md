@@ -56,7 +56,7 @@ Within the `<web-app>` element you add the following:
 
 	<filter> 
     		<filter-name>requestIdFilter</filter-name>
-    		<filter-class>com.shedhack.filter.requestid.RequestIdFilter</filter-class> 
+    		<filter-class>com.shedhack.filter.requestid.filter.RequestIdFilter</filter-class> 
   	</filter> 
   	<filter-mapping> 
     		<filter-name>requestIdFilter</filter-name>

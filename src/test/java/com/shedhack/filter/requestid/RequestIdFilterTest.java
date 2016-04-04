@@ -1,9 +1,9 @@
 package com.shedhack.filter.requestid;
 
+import com.shedhack.filter.requestid.filter.RequestIdFilter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnit44Runner;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.servlet.FilterChain;
@@ -32,15 +32,6 @@ public class RequestIdFilterTest {
     @Mock
     FilterChain chain;
 
-    @Test
-    public void void_should_use_default_request_id_key() {
-
-        // Arrange + Act
-        RequestIdFilter filter = new RequestIdFilter();
-
-        // Assert
-        assertEquals("request-id", filter.getRequestIdKey());
-    }
 
     @Test
     public void should_add_requestId_to_headers() throws IOException, ServletException {

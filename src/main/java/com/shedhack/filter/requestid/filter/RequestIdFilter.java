@@ -1,19 +1,20 @@
-package com.shedhack.filter.requestid;
+package com.shedhack.filter.requestid.filter;
 
+import com.shedhack.filter.requestid.constant.HttpHeaderKeysEnum;
 import com.shedhack.filter.requestid.helper.RequestHelper;
 import com.shedhack.filter.requestid.model.RequestModel;
-import org.slf4j.MDC;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.*;
 
 /**
  * <pre>
  *  In distributed systems it is difficult to trace the execution paths of multiple services.
- *  This filter will set several header properties, MDC for logging and will also provide
+ *  This filter will set several header properties and will also provide
  *  an easy to access ThreadLocal {@link RequestHelper} utility class.
  *
  *  The three properties are:
@@ -39,11 +40,9 @@ import java.util.*;
  *      filter or by a web server.
  *
  *     To enable easy access to the request Id value it gets stored on as a ThreadLocal variable.
- *     Please note that the MDC and the ThreadLocal gets cleaned up in this filter.
+ *     Please note that the ThreadLocal gets cleaned up in this filter.
  *
  *
- * The MDC setup is done via the setMDC(RequestModel model) method. If you wish
- * you could override this method whilst extending the RequestIdFilter.
  * </pre>
  *
  * @author imamchishty
@@ -51,16 +50,11 @@ import java.util.*;
 public class RequestIdFilter implements Filter {
 
     /**
-     * Default constructor with the HTTP header property for requestId key set to 'request-id'.
+     * Default constructor.
      */
     public RequestIdFilter() {
 
     }
-
-    public static final String REQUEST_ID = "request-id";
-    public static final String GROUP_ID = "group-id";
-    public static final String CALLER_ID = "caller-id";
-
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -71,6 +65,7 @@ public class RequestIdFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
         try {
+
             HttpServletRequest httpRequest = (HttpServletRequest) request;
             HeaderWrapper headerWrapper = new HeaderWrapper(httpRequest);
 
@@ -78,30 +73,35 @@ public class RequestIdFilter implements Filter {
             // Request Id
             // ---------
 
-            String requestId = headerWrapper.getHeader(REQUEST_ID);
+            String requestId = headerWrapper.getHeader(HttpHeaderKeysEnum.REQUEST_ID.key());
 
             if (requestId == null) {
                 requestId = UUID.randomUUID().toString();
-                headerWrapper.addHeader(REQUEST_ID, requestId);
+                headerWrapper.addHeader(HttpHeaderKeysEnum.REQUEST_ID.key(), requestId);
             }
 
             // --------
             // Group Id
             // --------
 
-            String groupId = headerWrapper.getHeader(GROUP_ID);
+            String groupId = headerWrapper.getHeader(HttpHeaderKeysEnum.GROUP_ID.key());
 
             if (groupId == null) {
                 groupId = UUID.randomUUID().toString();
-                headerWrapper.addHeader(GROUP_ID, requestId);
+                headerWrapper.addHeader(HttpHeaderKeysEnum.GROUP_ID.key(), requestId);
             }
 
             // Set the thread local for access later.
-            RequestModel model = new RequestModel(requestId, groupId, headerWrapper.getHeader(CALLER_ID));
-            RequestHelper.set(model);
+            RequestModel model = new RequestModel().builder().withRequestId(requestId)
+                    .withGroupId(groupId).withCallerId(headerWrapper.getHeader(HttpHeaderKeysEnum.CALLER_ID.key()))
+                    .withClientAddress(httpRequest.getRemoteAddr())
+                    .withHostAddress(httpRequest.getHeader(HttpHeaderKeysEnum.HOST.key()))
+                    .withPath(httpRequest.getRequestURI())
+                    .withHttpMethod(httpRequest.getMethod())
+                    .withSessionId(httpRequest.getSession().getId()).build();
 
-            // set MDC
-            setMDC(model);
+            // Set in the thread local for easy access.
+            RequestHelper.set(model);
 
             // continue down the chain
             chain.doFilter(headerWrapper, response);
@@ -110,31 +110,13 @@ public class RequestIdFilter implements Filter {
 
             // clean up
             RequestHelper.clear();
-            MDC.clear();
         }
     }
-
-    /**
-     * Sets the MDC
-     */
-    public void setMDC(RequestModel model) {
-
-        // Also set MDC for supported loggers:
-        MDC.put(GROUP_ID, model.getGroupId());
-        MDC.put(REQUEST_ID, model.toString());
-        MDC.put(CALLER_ID, model.getCallerId());
-    }
-
 
     @Override
     public void destroy() {
 
     }
-
-    public String getRequestIdKey() {
-        return REQUEST_ID;
-    }
-
 
     public class HeaderWrapper extends HttpServletRequestWrapper {
 
