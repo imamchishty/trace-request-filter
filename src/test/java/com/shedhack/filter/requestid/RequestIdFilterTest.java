@@ -1,6 +1,6 @@
 package com.shedhack.filter.requestid;
 
-import com.shedhack.filter.requestid.filter.RequestIdFilter;
+import com.shedhack.filter.requestid.filter.RequestTraceFilter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -37,10 +37,10 @@ public class RequestIdFilterTest {
     public void should_add_requestId_to_headers() throws IOException, ServletException {
 
         // Arrange
-        RequestIdFilter filter = new RequestIdFilter();
+        RequestTraceFilter filter = new RequestTraceFilter();
 
         // Act
-        filter.doFilter(request, response, chain);
+       // filter.doFilter(request, response, chain);
 
         // Assert
 

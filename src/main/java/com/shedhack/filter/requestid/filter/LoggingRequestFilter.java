@@ -1,35 +1,49 @@
 package com.shedhack.filter.requestid.filter;
 
-import com.shedhack.filter.requestid.helper.RequestHelper;
+import com.shedhack.filter.api.constant.HttpHeaderKeysEnum;
+import com.shedhack.filter.api.handler.LoggingHandler;
+import com.shedhack.filter.api.model.RequestModel;
+import com.shedhack.filter.api.threadlocal.RequestThreadLocalHelper;
+import org.slf4j.MDC;
 
 import javax.servlet.*;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <pre>
  *  This filter sets the MDC context for logging frameworks (via slf4j-api).
- *  This filter is used with {@link com.shedhack.filter.requestid.filter.RequestIdFilter}
+ *  This filter is used with {@link RequestTraceFilter}
  *  which must be called prior to this in the filter chain (that filter sets some of the
  *  properties that are required for the MDC).
  *
- *  You can modify the MDC context by extending this filter and overriding the setMDC method.
+ *  You can modify the MDC context by extending this filter and overriding the setup method.
  *  By default the MDC context contains:
  *
  *      request-id
  *      group-id
+ *      caller-id
  *
- *  It will also log at INFO level via the log method (once again you could override this).
- *  It will attempt to log the entire {@link com.shedhack.filter.requestid.model.RequestModel}.
+ *  The cleanup method will clear the MDC.
+ *
+ *  As part of the construction for LoggingRequestFilter you need to pass
+ *  either a list of {@link LoggingHandler} or just one. These will be executed sequentially (for a list).
+ *  These allow you to log the {@link RequestModel} to your chosen destination.
  * </pre>
  *
  * @author imamchishty
  */
 public class LoggingRequestFilter implements Filter {
 
-    private final LoggingHelper loggingHelper;
+    private final List<LoggingHandler> loggingHandlers;
 
-    public LoggingRequestFilter(LoggingHelper helper) {
-        this.loggingHelper = helper;
+    public LoggingRequestFilter(LoggingHandler loggingHandler) {
+        this.loggingHandlers = Arrays.asList(loggingHandler);
+    }
+
+    public LoggingRequestFilter(List<LoggingHandler> loggingHandlers) {
+        this.loggingHandlers = loggingHandlers;
     }
 
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -40,10 +54,12 @@ public class LoggingRequestFilter implements Filter {
 
         try {
             // Set the MDC context
-            loggingHelper.setMDC(RequestHelper.get());
+            setup(RequestThreadLocalHelper.get());
 
             // log
-            loggingHelper.log(RequestHelper.get());
+            for(LoggingHandler handler : loggingHandlers) {
+                handler.log(RequestThreadLocalHelper.get());
+            }
 
             // continue down the chain
             filterChain.doFilter(servletRequest, servletResponse);
@@ -51,7 +67,7 @@ public class LoggingRequestFilter implements Filter {
         finally {
 
             // clear the MDC
-            loggingHelper.clearMDC();
+            cleanup();
         }
     }
 
@@ -59,4 +75,24 @@ public class LoggingRequestFilter implements Filter {
 
     }
 
+    /**
+     * Sets the MDC with:
+     *
+     * request-id
+     * group-id
+     */
+    public void setup(RequestModel model) {
+        if(model != null) {
+            MDC.put(HttpHeaderKeysEnum.GROUP_ID.key(), model.getGroupId());
+            MDC.put(HttpHeaderKeysEnum.REQUEST_ID.key(), model.toString());
+            MDC.put(HttpHeaderKeysEnum.CALLER_ID.key(), model.getCallerId());
+        }
+    }
+
+    /**
+     * Clears the MDC.
+     */
+    public void cleanup() {
+        MDC.clear();
+    }
 }

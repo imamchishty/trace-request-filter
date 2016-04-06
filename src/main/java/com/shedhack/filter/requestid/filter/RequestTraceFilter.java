@@ -1,13 +1,13 @@
 package com.shedhack.filter.requestid.filter;
 
-import com.shedhack.filter.requestid.constant.HttpHeaderKeysEnum;
-import com.shedhack.filter.requestid.helper.RequestHelper;
-import com.shedhack.filter.requestid.model.RequestModel;
+import com.shedhack.filter.api.constant.HttpHeaderKeysEnum;
+import com.shedhack.filter.api.model.DefaultRequestModel;
+import com.shedhack.filter.api.model.RequestModel;
+import com.shedhack.filter.api.threadlocal.RequestThreadLocalHelper;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.*;
 
@@ -15,7 +15,7 @@ import java.util.*;
  * <pre>
  *  In distributed systems it is difficult to trace the execution paths of multiple services.
  *  This filter will set several header properties and will also provide
- *  an easy to access ThreadLocal {@link RequestHelper} utility class.
+ *  an easy to access ThreadLocal {@link com.shedhack.filter.api.threadlocal.RequestThreadLocalHelper} utility class.
  *
  *  The three properties are:
  *
@@ -47,12 +47,12 @@ import java.util.*;
  *
  * @author imamchishty
  */
-public class RequestIdFilter implements Filter {
+public class RequestTraceFilter implements Filter {
 
     /**
      * Default constructor.
      */
-    public RequestIdFilter() {
+    public RequestTraceFilter() {
 
     }
 
@@ -92,7 +92,7 @@ public class RequestIdFilter implements Filter {
             }
 
             // Set the thread local for access later.
-            RequestModel model = new RequestModel().builder().withRequestId(requestId)
+            RequestModel model = new DefaultRequestModel().builder().withRequestId(requestId)
                     .withGroupId(groupId).withCallerId(headerWrapper.getHeader(HttpHeaderKeysEnum.CALLER_ID.key()))
                     .withClientAddress(httpRequest.getRemoteAddr())
                     .withHostAddress(httpRequest.getHeader(HttpHeaderKeysEnum.HOST.key()))
@@ -101,7 +101,7 @@ public class RequestIdFilter implements Filter {
                     .withSessionId(httpRequest.getSession().getId()).build();
 
             // Set in the thread local for easy access.
-            RequestHelper.set(model);
+            RequestThreadLocalHelper.set(model);
 
             // continue down the chain
             chain.doFilter(headerWrapper, response);
@@ -109,7 +109,7 @@ public class RequestIdFilter implements Filter {
         finally {
 
             // clean up
-            RequestHelper.clear();
+            RequestThreadLocalHelper.clear();
         }
     }
 

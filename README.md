@@ -33,9 +33,15 @@ Please note that the MDC and the ThreadLocal get cleaned up in this filter.
 
 If you're using Spring then [thread-context-aspect](https://github.com/imamchishty/thread-context-aspect) and [thread-context-handler](https://github.com/imamchishty/thread-context-handler) would be able to use the properties and add more contextual details to the thread context. Please refer to those projects for more details.
 
+## Filter Request API
+
+Implementations of the API can be provided when constructing the filters. Please refer to [filter-request-api](https://github.com/imamchishty/filter-request-api) for details.
+
 ## Thread Local
 
-The request Id is also stored as a Thread Local variable. A static library, [Thread Local Utility](https://github.com/imamchishty/filter-request-id/blob/master/src/main/java/com/shedhack/filter/requestid/helper/RequestHelper.java) has been used to manage it (set/get/remove). The object stored in the TL is a [__RequestModel__](https://github.com/imamchishty/filter-request-id/blob/master/src/main/java/com/shedhack/filter/requestid/model/RequestModel.java).
+The request model is also stored as a Thread Local variable. A static library, 
+[Thread Local Utility](https://github.com/imamchishty/filter-request-api/blob/master/src/main/java/com/shedhack/filter/api/threadlocal/RequestThreadLocalHelper.java) has been used to manage it (set/get/remove). 
+The object stored in the TL is a [__RequestModel__](https://github.com/imamchishty/filter-request-api/blob/master/src/main/java/com/shedhack/filter/api/model/DefaultRequestModel.java).
 You can use this library to get access to the variable. The filter will also clear the TL. 
 
 ## MDC
@@ -46,7 +52,7 @@ Using slf4j's MDC the following properties are
 - __group-id__
 - __caller-id__
 
-These are set via the `setMDC(RequestModel model)` method. You could override this whilst extending RequestIdFilter. 
+These are set via the `setup(RequestModel model)` method. You could override this whilst extending RequestTraceFilter. 
 
 The MDC is cleared by the filter.
 
@@ -55,11 +61,11 @@ The MDC is cleared by the filter.
 Within the `<web-app>` element you add the following:
 
 	<filter> 
-    		<filter-name>requestIdFilter</filter-name>
-    		<filter-class>com.shedhack.filter.requestid.filter.RequestIdFilter</filter-class> 
+    		<filter-name>requestTraceFilter</filter-name>
+    		<filter-class>com.shedhack.filter.requestid.filter.RequestTraceFilter</filter-class> 
   	</filter> 
   	<filter-mapping> 
-    		<filter-name>requestIdFilter</filter-name>
+    		<filter-name>requestTraceFilter</filter-name>
     		<url-pattern>/*</url-pattern> 
   	</filter-mapping> 
 
@@ -68,7 +74,7 @@ Within the `<web-app>` element you add the following:
     @Bean
     public FilterRegistrationBean filterRegistrationBean() {
         FilterRegistrationBean filter = new FilterRegistrationBean();
-        filter.setFilter(new RequestIdFilter());
+        filter.setFilter(new RequestTraceFilter());
         return filter;
     }
 
@@ -82,6 +88,15 @@ The servlet-api is used, the actual implementation is your projects choice.
         <artifactId>javax.servlet-api</artifactId>
         <version>3.1.0</version>
     </dependency>
+    
+API library:
+    
+    <dependency>
+        <groupId>com.shedhack.filter</groupId>
+        <artifactId>filter-request-api</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+
         
 ## Java requirements
 
