@@ -37,7 +37,7 @@ public class RequestIdFilterTest {
     public void should_add_requestId_to_headers() throws IOException, ServletException {
 
         // Arrange
-        RequestTraceFilter filter = new RequestTraceFilter();
+        RequestTraceFilter filter = new RequestTraceFilter("appName");
 
         // Act
        // filter.doFilter(request, response, chain);

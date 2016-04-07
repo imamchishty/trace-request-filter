@@ -21,6 +21,7 @@ import java.util.List;
  *  You can modify the MDC context by extending this filter and overriding the setup method.
  *  By default the MDC context contains:
  *
+ *      application-id
  *      request-id
  *      group-id
  *      caller-id
@@ -83,6 +84,7 @@ public class LoggingRequestFilter implements Filter {
      */
     public void setup(RequestModel model) {
         if(model != null) {
+            MDC.put(HttpHeaderKeysEnum.APPLICATION_ID.key(), model.getApplicationId());
             MDC.put(HttpHeaderKeysEnum.GROUP_ID.key(), model.getGroupId());
             MDC.put(HttpHeaderKeysEnum.REQUEST_ID.key(), model.toString());
             MDC.put(HttpHeaderKeysEnum.CALLER_ID.key(), model.getCallerId());
