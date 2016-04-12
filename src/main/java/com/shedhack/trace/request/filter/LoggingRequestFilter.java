@@ -1,9 +1,9 @@
-package com.shedhack.filter.requestid.filter;
+package com.shedhack.trace.request.filter;
 
-import com.shedhack.filter.api.constant.HttpHeaderKeysEnum;
-import com.shedhack.filter.api.handler.LoggingHandler;
-import com.shedhack.filter.api.model.RequestModel;
-import com.shedhack.filter.api.threadlocal.RequestThreadLocalHelper;
+import com.shedhack.trace.request.api.constant.HttpHeaderKeysEnum;
+import com.shedhack.trace.request.api.logging.LoggingHandler;
+import com.shedhack.trace.request.api.model.RequestModel;
+import com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper;
 import org.slf4j.MDC;
 
 import javax.servlet.*;
@@ -29,8 +29,8 @@ import java.util.List;
  *  The cleanup method will clear the MDC.
  *
  *  As part of the construction for LoggingRequestFilter you need to pass
- *  either a list of {@link LoggingHandler} or just one. These will be executed sequentially (for a list).
- *  These allow you to log the {@link RequestModel} to your chosen destination.
+ *  either a list of {@link com.shedhack.trace.request.api.logging.LoggingHandler} or just one. These will be executed sequentially (for a list).
+ *  These allow you to log the {@link com.shedhack.trace.request.api.model.RequestModel} to your chosen destination.
  * </pre>
  *
  * @author imamchishty

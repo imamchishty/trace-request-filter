@@ -1,9 +1,13 @@
-package com.shedhack.filter.requestid.filter;
+package com.shedhack.trace.request.filter;
 
-import com.shedhack.filter.api.constant.HttpHeaderKeysEnum;
-import com.shedhack.filter.api.model.DefaultRequestModel;
-import com.shedhack.filter.api.model.RequestModel;
-import com.shedhack.filter.api.threadlocal.RequestThreadLocalHelper;
+
+import com.shedhack.trace.request.api.constant.HttpHeaderKeysEnum;
+import com.shedhack.trace.request.api.constant.Status;
+import com.shedhack.trace.request.api.model.DefaultRequestModel;
+import com.shedhack.trace.request.api.model.RequestModel;
+import com.shedhack.trace.request.api.service.TraceRequestService;
+import com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper;
+import com.shedhack.trace.request.filter.utility.HttpUtilities;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -15,7 +19,7 @@ import java.util.*;
  * <pre>
  *  In distributed systems it is difficult to trace the execution paths of multiple services.
  *  This filter will set several header properties and will also provide
- *  an easy to access ThreadLocal {@link com.shedhack.filter.api.threadlocal.RequestThreadLocalHelper} utility class.
+ *  an easy to access ThreadLocal {@link com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper} utility class.
  *
  *  The properties are:
  *
@@ -55,11 +59,14 @@ public class RequestTraceFilter implements Filter {
     /**
      * Default constructor.
      */
-    public RequestTraceFilter(String applicationId) {
+    public RequestTraceFilter(String applicationId, TraceRequestService requestService) {
         this.appId = applicationId;
+        this.requestService = requestService;
     }
 
     private final String appId;
+
+    private final TraceRequestService requestService;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -97,27 +104,35 @@ public class RequestTraceFilter implements Filter {
             }
 
             // Set the thread local for access later.
-            RequestModel model = new DefaultRequestModel().builder()
-                    .withApplicationId(appId)
-                    .withDateTime(new Date())
-                    .withRequestId(requestId)
-                    .withGroupId(groupId).withCallerId(headerWrapper.getHeader(HttpHeaderKeysEnum.CALLER_ID.key()))
+            RequestModel model = new DefaultRequestModel().builder(appId, requestId, groupId)
+                    .withRequestDateTime(new Date())
+                    .withCallerId(headerWrapper.getHeader(HttpHeaderKeysEnum.CALLER_ID.key()))
                     .withClientAddress(httpRequest.getRemoteAddr())
                     .withHostAddress(httpRequest.getHeader(HttpHeaderKeysEnum.HOST.key()))
                     .withPath(httpRequest.getRequestURI())
                     .withHttpMethod(httpRequest.getMethod())
-                    .withSessionId(httpRequest.getSession().getId()).build();
+                    .withSessionId(httpRequest.getSession().getId())
+                    .withHttpHeaders(HttpUtilities.headerNamesValuesAsString(httpRequest))
+                    .withStatus(Status.RUNNING).build();
 
             // Set in the thread local for easy access.
             RequestThreadLocalHelper.set(model);
 
+            System.out.println(new Date() + "> BEFORE FILTER CHAIN");
+
             // continue down the chain
             chain.doFilter(headerWrapper, response);
+
+            System.out.println(new Date() + "> AFTER FILTER CHAIN " + RequestThreadLocalHelper.get().toString());
+
         }
         finally {
 
             // clean up
             RequestThreadLocalHelper.clear();
+
+            System.out.println(new Date() + "> CLEAN TL");
+
         }
     }
 
