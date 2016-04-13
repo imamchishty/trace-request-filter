@@ -3,7 +3,7 @@ package com.shedhack.trace.request.filter;
 
 import com.shedhack.trace.request.api.constant.HttpHeaderKeysEnum;
 import com.shedhack.trace.request.api.constant.Status;
-import com.shedhack.trace.request.api.model.DefaultRequestModel;
+import com.shedhack.trace.request.api.model.RequestDto;
 import com.shedhack.trace.request.api.model.RequestModel;
 import com.shedhack.trace.request.api.service.TraceRequestService;
 import com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper;
@@ -76,63 +76,38 @@ public class RequestTraceFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
+        RequestModel model = null;
+
         try {
 
             HttpServletRequest httpRequest = (HttpServletRequest) request;
             HeaderWrapper headerWrapper = new HeaderWrapper(httpRequest);
 
-            // ----------
-            // Request Id
-            // ---------
+            // Get the Request Id
+            String requestId = getSetHeaderId(headerWrapper, HttpHeaderKeysEnum.REQUEST_ID.key());
 
-            String requestId = headerWrapper.getHeader(HttpHeaderKeysEnum.REQUEST_ID.key());
+            // Get the Group Id
+            String groupId = getSetHeaderId(headerWrapper, HttpHeaderKeysEnum.GROUP_ID.key());
 
-            if (requestId == null) {
-                requestId = UUID.randomUUID().toString();
-                headerWrapper.addHeader(HttpHeaderKeysEnum.REQUEST_ID.key(), requestId);
-            }
+            // create the model
+            model = build(httpRequest, headerWrapper, requestId, groupId);
 
-            // --------
-            // Group Id
-            // --------
-
-            String groupId = headerWrapper.getHeader(HttpHeaderKeysEnum.GROUP_ID.key());
-
-            if (groupId == null) {
-                groupId = UUID.randomUUID().toString();
-                headerWrapper.addHeader(HttpHeaderKeysEnum.GROUP_ID.key(), requestId);
-            }
-
-            // Set the thread local for access later.
-            RequestModel model = new DefaultRequestModel().builder(appId, requestId, groupId)
-                    .withRequestDateTime(new Date())
-                    .withCallerId(headerWrapper.getHeader(HttpHeaderKeysEnum.CALLER_ID.key()))
-                    .withClientAddress(httpRequest.getRemoteAddr())
-                    .withHostAddress(httpRequest.getHeader(HttpHeaderKeysEnum.HOST.key()))
-                    .withPath(httpRequest.getRequestURI())
-                    .withHttpMethod(httpRequest.getMethod())
-                    .withSessionId(httpRequest.getSession().getId())
-                    .withHttpHeaders(HttpUtilities.headerNamesValuesAsString(httpRequest))
-                    .withStatus(Status.RUNNING).build();
+            // Save the model
+            model = requestService.persist(model);
 
             // Set in the thread local for easy access.
             RequestThreadLocalHelper.set(model);
 
-            System.out.println(new Date() + "> BEFORE FILTER CHAIN");
-
             // continue down the chain
             chain.doFilter(headerWrapper, response);
-
-            System.out.println(new Date() + "> AFTER FILTER CHAIN " + RequestThreadLocalHelper.get().toString());
-
         }
         finally {
 
+            // Update the model
+            update(response, model);
+
             // clean up
             RequestThreadLocalHelper.clear();
-
-            System.out.println(new Date() + "> CLEAN TL");
-
         }
     }
 
@@ -140,6 +115,54 @@ public class RequestTraceFilter implements Filter {
     public void destroy() {
 
     }
+
+
+    // --------------
+    // Helper methods
+    // --------------
+
+    // If property is missing then it'll be generated and stored to the Headers
+    private String getSetHeaderId(HeaderWrapper headerWrapper, String key) {
+
+        String id = headerWrapper.getHeader(key);
+
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+            headerWrapper.addHeader(key, id);
+        }
+
+        return id;
+    }
+
+    // Set the response date/time and also the status
+    private RequestModel update(ServletResponse response, RequestModel model) {
+
+        if(model != null) {
+            model.setResponseDateTime(new Date());
+            model.setStatus(Status.COMPLETED);
+        }
+
+        // save the mode
+        return requestService.persist(model);
+    }
+
+    private RequestModel build(HttpServletRequest httpRequest, HeaderWrapper headerWrapper, String requestId, String groupId) {
+
+        return new RequestDto().builder(appId, requestId, groupId)
+                .withRequestDateTime(new Date())
+                .withCallerId(headerWrapper.getHeader(HttpHeaderKeysEnum.CALLER_ID.key()))
+                .withClientAddress(httpRequest.getRemoteAddr())
+                .withHostAddress(httpRequest.getHeader(HttpHeaderKeysEnum.HOST.key()))
+                .withPath(httpRequest.getRequestURI())
+                .withHttpMethod(httpRequest.getMethod())
+                .withSessionId(httpRequest.getSession().getId())
+                .withHttpHeaders(HttpUtilities.headerNamesValuesAsString(httpRequest))
+                .withStatus(Status.RUNNING).build();
+    }
+
+    // ---------------------------------------------------
+    // HTTP Header Wrapper - adds the missing HTTP headers
+    // ---------------------------------------------------
 
     public class HeaderWrapper extends HttpServletRequestWrapper {
 

@@ -9,7 +9,6 @@ import org.slf4j.MDC;
 import javax.servlet.*;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * <pre>
@@ -28,23 +27,27 @@ import java.util.List;
  *
  *  The cleanup method will clear the MDC.
  *
- *  As part of the construction for LoggingRequestFilter you need to pass
- *  either a list of {@link com.shedhack.trace.request.api.logging.LoggingHandler} or just one. These will be executed sequentially (for a list).
- *  These allow you to log the {@link com.shedhack.trace.request.api.model.RequestModel} to your chosen destination.
+ *  As part of the construction for LoggingRequestFilter you can optionally pass
+ *  an implementation of {@link com.shedhack.trace.request.api.logging.LoggingHandler}.
+ *  If you're using the default constructor then it will automatically log at INFO level, using
+ *  {@link DefaultLoggingHandler}.
+ *  The alternative is that you use create your own implementation which will
+ *  allow you to log the {@link com.shedhack.trace.request.api.model.RequestModel} to your chosen destination.
  * </pre>
  *
  * @author imamchishty
  */
 public class LoggingRequestFilter implements Filter {
 
-    private final List<LoggingHandler> loggingHandlers;
+    private final LoggingHandler loggingHandler;
 
     public LoggingRequestFilter(LoggingHandler loggingHandler) {
-        this.loggingHandlers = Arrays.asList(loggingHandler);
+        this.loggingHandler = loggingHandler;
     }
 
-    public LoggingRequestFilter(List<LoggingHandler> loggingHandlers) {
-        this.loggingHandlers = loggingHandlers;
+    // default constructor
+    public LoggingRequestFilter() {
+        loggingHandler = new DefaultLoggingHandler();
     }
 
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -58,9 +61,7 @@ public class LoggingRequestFilter implements Filter {
             setup(RequestThreadLocalHelper.get());
 
             // log
-            for(LoggingHandler handler : loggingHandlers) {
-                handler.log(RequestThreadLocalHelper.get());
-            }
+            loggingHandler.log(RequestThreadLocalHelper.get());
 
             // continue down the chain
             filterChain.doFilter(servletRequest, servletResponse);

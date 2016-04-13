@@ -22,9 +22,9 @@ public class DefaultLoggingHandler implements LoggingHandler {
      */
     public void log(RequestModel model) {
         if(model != null) {
-            LOGGER.info("{" +
-                    "applicationId='" + model.getApplicationId() + '\'' +
-                    ", requestId='" + model.getRequestId() + '\'' +
+            LOGGER.info("Request{" +
+                    "requestId='" + model.getRequestId() + '\'' +
+                    ", applicationId='" + model.getApplicationId() + '\'' +
                     ", groupId='" + model.getGroupId() + '\'' +
                     ", callerId='" + model.getCallerId() + '\'' +
                     ", path='" + model.getPath() + '\'' +
@@ -32,8 +32,11 @@ public class DefaultLoggingHandler implements LoggingHandler {
                     ", httpMethod='" + model.getHttpMethod() + '\'' +
                     ", clientAddress='" + model.getClientAddress() + '\'' +
                     ", hostAddress='" + model.getHostAddress() + '\'' +
-                    ", dateTime=" + model.getDateTime() +
-                    ", headers=" + model.getHeaders() +
+                    ", headers='" + model.getHeaders() + '\'' +
+                    ", exceptionId='" + model.getExceptionId() + '\'' +
+                    ", requestDateTime=" + model.getRequestDateTime() +
+                    ", responseDateTime=" + model.getResponseDateTime() +
+                    ", status=" + model.getStatus() +
                     '}');
         }
     }
