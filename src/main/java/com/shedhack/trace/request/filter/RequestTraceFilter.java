@@ -12,6 +12,7 @@ import com.shedhack.trace.request.filter.utility.HttpUtilities;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
@@ -134,16 +135,44 @@ public class RequestTraceFilter implements Filter {
         return id;
     }
 
-    // Set the response date/time and also the status
-    private RequestModel update(ServletResponse response, RequestModel model) {
+    // Set the response date/time and also the status - also check for exceptions
+    public RequestModel update(ServletResponse servletResponse, RequestModel model) {
 
         if(model != null) {
+
+            HttpServletResponse response = (HttpServletResponse) servletResponse;
+
             model.setResponseDateTime(new Date());
-            model.setStatus(Status.COMPLETED);
+            model.setHttpStatusCode(response.getStatus());
+
+            // Attempt to get the exception Id
+            if (responseContainsFailureStatusCode(response.getStatus())) {
+                String exceptionId = response.getHeader(HttpHeaderKeysEnum.EXCEPTION_ID.key());
+
+                if (exceptionId != null && exceptionId.length() > 0) {
+                    model.setExceptionId(exceptionId);
+                }
+
+                model.setStatus(Status.FAILED);
+            }
+            else {
+                model.setStatus(Status.COMPLETED);
+            }
+
+            // save the mode
+            return requestService.persist(model);
         }
 
-        // save the mode
-        return requestService.persist(model);
+        return model;
+    }
+
+    /**
+     * Checks if the status code is in the failure range.
+     * @param status from the response object
+     * @return true if the status code is 400-500
+     */
+    public boolean responseContainsFailureStatusCode(int status) {
+        return (status >= 400 && status <= 500);
     }
 
     private RequestModel build(HttpServletRequest httpRequest, HeaderWrapper headerWrapper, String requestId, String groupId) {
