@@ -22,22 +22,22 @@ public class DefaultLoggingHandler implements LoggingHandler {
      */
     public void log(RequestModel model) {
         if(model != null) {
-            LOGGER.info("Request{" +
-                    "requestId='" + model.getRequestId() + '\'' +
-                    ", applicationId='" + model.getApplicationId() + '\'' +
-                    ", groupId='" + model.getGroupId() + '\'' +
-                    ", callerId='" + model.getCallerId() + '\'' +
-                    ", path='" + model.getPath() + '\'' +
-                    ", sessionId='" + model.getSessionId() + '\'' +
-                    ", httpMethod='" + model.getHttpMethod() + '\'' +
-                    ", clientAddress='" + model.getClientAddress() + '\'' +
-                    ", hostAddress='" + model.getHostAddress() + '\'' +
-                    ", headers='" + model.getHeaders() + '\'' +
-                    ", exceptionId='" + model.getExceptionId() + '\'' +
-                    ", requestDateTime=" + model.getRequestDateTime() +
-                    ", responseDateTime=" + model.getResponseDateTime() +
-                    ", status=" + model.getStatus() +
-                    '}');
+            LOGGER.info("{" +
+                    "\"requestId\": \"" + model.getRequestId() + "\"" +
+                    ", \"applicationId\": \"" + model.getApplicationId() + "\"" +
+                    ", \"groupId\": \"" + model.getGroupId() + "\"" +
+                    ", \"callerId\": \"" + model.getCallerId() + "\"" +
+                    ", \"path\": \"" + model.getPath() + "\"" +
+                    ", \"sessionId\": \"" + model.getSessionId() + "\"" +
+                    ", \"httpMethod\": \"" + model.getHttpMethod() + "\"" +
+                    ", \"clientAddress\": \"" + model.getClientAddress() + "\"" +
+                    ", \"hostAddress\": \"" + model.getHostAddress() + "\"" +
+                    ", \"headers\": \"" + model.getHeaders() + "\"" +
+                    ", \"exceptionId\": \"" + model.getExceptionId() + "\"" +
+                    ", \"requestDateTime\": \"" + model.getRequestDateTime() + "\"" +
+                    ", \"responseDateTime\": \"" + model.getResponseDateTime() + "\"" +
+                    ", \"status\": \"" + model.getStatus() + "\"" +
+                    "}");
         }
     }
 

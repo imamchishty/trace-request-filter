@@ -3,6 +3,7 @@ package com.shedhack.trace.request.filter;
 
 import com.shedhack.trace.request.api.constant.HttpHeaderKeysEnum;
 import com.shedhack.trace.request.api.constant.Status;
+import com.shedhack.trace.request.api.logging.LoggingHandler;
 import com.shedhack.trace.request.api.model.RequestDto;
 import com.shedhack.trace.request.api.model.RequestModel;
 import com.shedhack.trace.request.api.service.TraceRequestService;
@@ -51,6 +52,15 @@ import java.util.*;
  *
  * When constructing this filter you'll need to provide the application name/Id. This
  * is stored in the RequestModel.
+ *
+ * The {@link TraceRequestService} service is called in the doFilter method, before the
+ * actual web service/controller is called. The generated RequestModel is passed
+ * to the persist method of the {@link TraceRequestService} and is also set as a thread local
+ * variable via {@link RequestThreadLocalHelper}. After the request completes the
+ * update method is called within the filter, this updates the record. Finally
+ * after updating the {@link LoggingHandler} is called to log the completed request
+ * and thread local is cleared.
+ *
  * </pre>
  *
  * @author imamchishty
@@ -60,14 +70,17 @@ public class RequestTraceFilter implements Filter {
     /**
      * Default constructor.
      */
-    public RequestTraceFilter(String applicationId, TraceRequestService requestService) {
+    public RequestTraceFilter(String applicationId, TraceRequestService requestService, LoggingHandler loggingHandler) {
         this.appId = applicationId;
         this.requestService = requestService;
+        this.loggingHandler = loggingHandler;
     }
 
     private final String appId;
 
     private final TraceRequestService requestService;
+
+    private final  LoggingHandler loggingHandler;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -107,6 +120,9 @@ public class RequestTraceFilter implements Filter {
             // Update the model
             update(response, model);
 
+            // log
+            loggingHandler.log(model);
+
             // clean up
             RequestThreadLocalHelper.clear();
         }
@@ -116,7 +132,6 @@ public class RequestTraceFilter implements Filter {
     public void destroy() {
 
     }
-
 
     // --------------
     // Helper methods
