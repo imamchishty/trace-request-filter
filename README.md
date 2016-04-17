@@ -1,6 +1,6 @@
 # Request Id Filter
 
-[![Build Status](https://travis-ci.org/imamchishty/filter-request-id.svg?branch=master "filter-request-id")](https://travis-ci.org/imamchishty/filter-request-id) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.shedhack.filter/filter-request-id/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.shedhack.filter/filter-request-id)
+[![Build Status](https://travis-ci.org/imamchishty/trace-request-filter.svg?branch=master "filter-request-id")](https://travis-ci.org/imamchishty/trace-request-filter) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.shedhack.trace/trace-request-filter/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.shedhack.trace/trace-request-filter)
 
 ## Introduction
 In distributed systems it is difficult to trace the execution paths of multiple services.
@@ -61,6 +61,19 @@ The MDC is cleared by the filter.
 The filter logs the request (upon completion). The log entry will look something like:
 
 `2016-04-16 17:10:15.167  INFO 18343 --- [{}, context={}}] c.s.t.r.filter.DefaultLoggingHandler     : {"requestId": "5f3e26f0-6fa2-4174-9665-ceb1f6193900", "applicationId": "hello-world", "groupId": "63f55640-73ae-495e-975a-62470832dfa9", "callerId": "null", "path": "/problem", "sessionId": "093B287BCEFDF582D2E5C8A4B16B90F7", "httpMethod": "GET", "clientAddress": "0:0:0:0:0:0:0:1", "hostAddress": "localhost:8080", "headers": "{"host":"localhost:8080","connection":"close","user-agent":"HTTP%20Client/1.0.3 CFNetwork/720.5.7 Darwin/14.5.0 (x86_64)"}", "exceptionId": "aefdab47-9188-4c36-8fa6-b59e806c219c", "requestDateTime": "Sat Apr 16 17:10:14 GST 2016", "responseDateTime": "Sat Apr 16 17:10:15 GST 2016", "status": "FAILED"}`
+
+## RestTemplate
+
+If you're calling other restful services that also use this filter then you need to pass the caller-id and the group-id otherwise
+they'll be generated. Here is an example:
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add(HttpHeaderKeysEnum.CALLER_ID.key(), RequestThreadLocalHelper.get().getRequestId());
+        headers.add(HttpHeaderKeysEnum.GROUP_ID.key(), RequestThreadLocalHelper.get().getGroupId());
+
+        HttpEntity<String> request = new HttpEntity<>("pong", headers);
+        template.postForObject(new URL("http://localhost:8080/pong").toString(), request, String.class);
+
 
 
 ### web.xml
