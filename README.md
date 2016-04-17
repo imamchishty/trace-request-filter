@@ -56,6 +56,13 @@ These are set via the `setup(RequestModel model)` method. You could override thi
 
 The MDC is cleared by the filter.
 
+## Logging
+
+The filter logs the request (upon completion). The log entry will look something like:
+
+`2016-04-16 17:10:15.167  INFO 18343 --- [{}, context={}}] c.s.t.r.filter.DefaultLoggingHandler     : {"requestId": "5f3e26f0-6fa2-4174-9665-ceb1f6193900", "applicationId": "hello-world", "groupId": "63f55640-73ae-495e-975a-62470832dfa9", "callerId": "null", "path": "/problem", "sessionId": "093B287BCEFDF582D2E5C8A4B16B90F7", "httpMethod": "GET", "clientAddress": "0:0:0:0:0:0:0:1", "hostAddress": "localhost:8080", "headers": "{"host":"localhost:8080","connection":"close","user-agent":"HTTP%20Client/1.0.3 CFNetwork/720.5.7 Darwin/14.5.0 (x86_64)"}", "exceptionId": "aefdab47-9188-4c36-8fa6-b59e806c219c", "requestDateTime": "Sat Apr 16 17:10:14 GST 2016", "responseDateTime": "Sat Apr 16 17:10:15 GST 2016", "status": "FAILED"}`
+
+
 ### web.xml
 
 Within the `<web-app>` element you add the following:
