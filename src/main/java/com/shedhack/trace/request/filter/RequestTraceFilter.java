@@ -58,7 +58,7 @@ import java.util.*;
  * to the persist method of the {@link TraceRequestService} and is also set as a thread local
  * variable via {@link RequestThreadLocalHelper}. After the request completes the
  * update method is called within the filter, this updates the record. Finally
- * after updating the {@link LoggingHandler} is called to log the completed request
+ * after updating the list of {@link LoggingHandler} are called to log the completed request (or whatever you like)
  * and thread local is cleared.
  *
  * </pre>
@@ -70,17 +70,29 @@ public class RequestTraceFilter implements Filter {
     /**
      * Default constructor.
      */
+    public RequestTraceFilter(String applicationId, TraceRequestService requestService, List<LoggingHandler> loggingHandlers) {
+        this.appId = applicationId;
+        this.requestService = requestService;
+
+        if(loggingHandlers != null) {
+            this.loggingHandlers = loggingHandlers;
+        }
+        else {
+            this.loggingHandlers = Collections.EMPTY_LIST;
+        }
+    }
+
     public RequestTraceFilter(String applicationId, TraceRequestService requestService, LoggingHandler loggingHandler) {
         this.appId = applicationId;
         this.requestService = requestService;
-        this.loggingHandler = loggingHandler;
+        this.loggingHandlers = Arrays.asList(loggingHandler);
     }
 
     private final String appId;
 
     private final TraceRequestService requestService;
 
-    private final  LoggingHandler loggingHandler;
+    private final List<LoggingHandler> loggingHandlers;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -121,7 +133,7 @@ public class RequestTraceFilter implements Filter {
             update(response, model);
 
             // log
-            loggingHandler.log(model);
+            callHandlers(model);
 
             // clean up
             RequestThreadLocalHelper.clear();
@@ -136,6 +148,12 @@ public class RequestTraceFilter implements Filter {
     // --------------
     // Helper methods
     // --------------
+
+    private void callHandlers(RequestModel model) {
+        for(LoggingHandler loggingHandler : loggingHandlers) {
+            loggingHandler.log(model);
+        }
+    }
 
     // If property is missing then it'll be generated and stored to the Headers
     private String getSetHeaderId(HeaderWrapper headerWrapper, String key) {
