@@ -4,7 +4,7 @@
 
     <groupId>com.shedhack.trace</groupId>
     <artifactId>trace-request-filter</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4-SNAPSHOT</version>
 
     <description>Servlet filter that creates a unique Request ID if one not available in the header.</description>
     <url>https://github.com/imamchishty/trace-request-filter</url>
@@ -33,7 +33,7 @@
         <connection>scm:git:git@github.com:imamchishty/trace-request-filter.git</connection>
         <developerConnection>scm:git:git@github.com:imamchishty/trace-request-filter.git</developerConnection>
         <url>git@github.com:imamchishty/trace-request-filter.git</url>
-        <tag>trace-request-filter-1.0.3</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
