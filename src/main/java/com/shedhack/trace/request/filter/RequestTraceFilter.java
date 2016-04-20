@@ -9,6 +9,7 @@ import com.shedhack.trace.request.api.model.RequestModel;
 import com.shedhack.trace.request.api.service.TraceRequestService;
 import com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper;
 import com.shedhack.trace.request.filter.utility.HttpUtilities;
+import org.slf4j.MDC;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -124,6 +125,9 @@ public class RequestTraceFilter implements Filter {
             // Set in the thread local for easy access.
             RequestThreadLocalHelper.set(model);
 
+            // setup MDC
+            setupMDC(model);
+
             // continue down the chain
             chain.doFilter(headerWrapper, response);
         }
@@ -137,8 +141,17 @@ public class RequestTraceFilter implements Filter {
 
             // clean up
             RequestThreadLocalHelper.clear();
+            MDC.clear();
         }
     }
+
+    protected void setupMDC(RequestModel model) {
+        MDC.put("request-id", model.getRequestId());
+        MDC.put("group-id", model.getGroupId());
+        MDC.put("caller-id", model.getCallerId());
+        MDC.put("application-id", model.getApplicationId());
+    }
+
 
     @Override
     public void destroy() {
