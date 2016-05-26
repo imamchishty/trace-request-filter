@@ -212,7 +212,7 @@ public class RequestTraceFilter implements Filter {
      */
     private void onExit(RequestModel request) {
         for(TraceRequestInterceptor interceptor : interceptors) {
-            interceptor.onEntry(request);
+            interceptor.onExit(request);
         }
     }
 
