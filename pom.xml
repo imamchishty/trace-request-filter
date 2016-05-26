@@ -67,7 +67,7 @@
         <dependency>
             <groupId>com.shedhack.trace</groupId>
             <artifactId>trace-request-api</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
 
         <!-- Logging, actual implementation needs to be provided by consumer of the filters -->

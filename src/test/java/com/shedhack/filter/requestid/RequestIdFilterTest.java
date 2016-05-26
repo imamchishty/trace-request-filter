@@ -1,6 +1,6 @@
 package com.shedhack.filter.requestid;
 
-import com.shedhack.trace.request.filter.DefaultLoggingHandler;
+import com.shedhack.trace.request.filter.DefaultTraceRequestInterceptor;
 import com.shedhack.trace.request.filter.RequestTraceFilter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +38,7 @@ public class RequestIdFilterTest {
     public void should_add_requestId_to_headers() throws IOException, ServletException {
 
         // Arrange
-        RequestTraceFilter filter = new RequestTraceFilter("appName", null, new DefaultLoggingHandler());
+        RequestTraceFilter filter = new RequestTraceFilter("appName", new DefaultTraceRequestInterceptor());
 
         // Act
        // filter.doFilter(request, response, chain);

@@ -1,15 +1,12 @@
 package com.shedhack.trace.request.filter;
 
-
 import com.shedhack.trace.request.api.constant.HttpHeaderKeysEnum;
 import com.shedhack.trace.request.api.constant.Status;
-import com.shedhack.trace.request.api.logging.LoggingHandler;
-import com.shedhack.trace.request.api.model.RequestDto;
+import com.shedhack.trace.request.api.interceptor.TraceRequestInterceptor;
+import com.shedhack.trace.request.api.model.DefaultRequestModel;
 import com.shedhack.trace.request.api.model.RequestModel;
-import com.shedhack.trace.request.api.service.TraceRequestService;
 import com.shedhack.trace.request.api.threadlocal.RequestThreadLocalHelper;
 import com.shedhack.trace.request.filter.utility.HttpUtilities;
-import org.slf4j.MDC;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -54,13 +51,10 @@ import java.util.*;
  * When constructing this filter you'll need to provide the application name/Id. This
  * is stored in the RequestModel.
  *
- * The {@link TraceRequestService} service is called in the doFilter method, before the
- * actual web service/controller is called. The generated RequestModel is passed
- * to the persist method of the {@link TraceRequestService} and is also set as a thread local
- * variable via {@link RequestThreadLocalHelper}. After the request completes the
- * update method is called within the filter, this updates the record. Finally
- * after updating the list of {@link LoggingHandler} are called to log the completed request (or whatever you like)
- * and thread local is cleared.
+ * The filter, when constructed, takes one or more {@link TraceRequestInterceptor} implementations.
+ * Each interceptor will be called when the request model is created (i.e. on entry) and also
+ * on exit (fulfilment of the request). When the request completes, the response header will also
+ * include the 'application-id', 'request-id' and 'group-id'.
  *
  * </pre>
  *
@@ -71,29 +65,25 @@ public class RequestTraceFilter implements Filter {
     /**
      * Default constructor.
      */
-    public RequestTraceFilter(String applicationId, TraceRequestService requestService, List<LoggingHandler> loggingHandlers) {
+    public RequestTraceFilter(String applicationId, List<TraceRequestInterceptor> interceptors) {
         this.appId = applicationId;
-        this.requestService = requestService;
 
-        if(loggingHandlers != null) {
-            this.loggingHandlers = loggingHandlers;
+        if(interceptors != null) {
+            this.interceptors = interceptors;
         }
         else {
-            this.loggingHandlers = Collections.EMPTY_LIST;
+            this.interceptors = Collections.EMPTY_LIST;
         }
     }
 
-    public RequestTraceFilter(String applicationId, TraceRequestService requestService, LoggingHandler loggingHandler) {
+    public RequestTraceFilter(String applicationId, TraceRequestInterceptor interceptor) {
         this.appId = applicationId;
-        this.requestService = requestService;
-        this.loggingHandlers = Arrays.asList(loggingHandler);
+        this.interceptors = Arrays.asList(interceptor);
     }
 
     private final String appId;
 
-    private final TraceRequestService requestService;
-
-    private final List<LoggingHandler> loggingHandlers;
+    private final List<TraceRequestInterceptor> interceptors;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -119,14 +109,14 @@ public class RequestTraceFilter implements Filter {
             // create the model
             model = build(httpRequest, headerWrapper, requestId, groupId);
 
-            // Save the model
-            model = requestService.persist(model);
+            // Call the interceptors
+            onEntry(model);
 
             // Set in the thread local for easy access.
             RequestThreadLocalHelper.set(model);
 
-            // setup MDC
-            setupMDC(model);
+            // Add request-id and group-id to the response header.
+            addResponseHeaders((HttpServletResponse) response, model);
 
             // continue down the chain
             chain.doFilter(headerWrapper, response);
@@ -134,24 +124,15 @@ public class RequestTraceFilter implements Filter {
         finally {
 
             // Update the model
-            update(response, model);
+            model = update(response, model);
 
-            // log
-            callHandlers(model);
+            // Call the interceptors
+            onExit(model);
 
             // clean up
             RequestThreadLocalHelper.clear();
-            MDC.clear();
         }
     }
-
-    protected void setupMDC(RequestModel model) {
-        MDC.put("request-id", model.getRequestId());
-        MDC.put("group-id", model.getGroupId());
-        MDC.put("caller-id", model.getCallerId());
-        MDC.put("application-id", model.getApplicationId());
-    }
-
 
     @Override
     public void destroy() {
@@ -162,10 +143,15 @@ public class RequestTraceFilter implements Filter {
     // Helper methods
     // --------------
 
-    private void callHandlers(RequestModel model) {
-        for(LoggingHandler loggingHandler : loggingHandlers) {
-            loggingHandler.log(model);
-        }
+    /**
+     * Adds the request-id and group-id to the response header.
+     * @param response response for the client
+     * @param model request model formed when the request was first received.
+     */
+    private void addResponseHeaders(HttpServletResponse response, RequestModel model) {
+        response.addHeader(HttpHeaderKeysEnum.REQUEST_ID.key(), model.getRequestId());
+        response.addHeader(HttpHeaderKeysEnum.GROUP_ID.key(), model.getGroupId());
+        response.addHeader(HttpHeaderKeysEnum.APPLICATION_ID.key(), appId);
     }
 
     // If property is missing then it'll be generated and stored to the Headers
@@ -205,11 +191,29 @@ public class RequestTraceFilter implements Filter {
                 model.setStatus(Status.COMPLETED);
             }
 
-            // save the mode
-            return requestService.persist(model);
         }
 
         return model;
+    }
+
+    /**
+     * Call all the interceptors passing the request.
+     * @param request model formed via the http headers
+     */
+    private void onEntry(RequestModel request) {
+        for(TraceRequestInterceptor interceptor : interceptors) {
+            interceptor.onEntry(request);
+        }
+    }
+
+    /**
+     * Call all the interceptors passing the request.
+     * @param request model formed via the http headers
+     */
+    private void onExit(RequestModel request) {
+        for(TraceRequestInterceptor interceptor : interceptors) {
+            interceptor.onEntry(request);
+        }
     }
 
     /**
@@ -223,7 +227,7 @@ public class RequestTraceFilter implements Filter {
 
     private RequestModel build(HttpServletRequest httpRequest, HeaderWrapper headerWrapper, String requestId, String groupId) {
 
-        return new RequestDto().builder(appId, requestId, groupId)
+        return new DefaultRequestModel().builder(appId, requestId, groupId)
                 .withRequestDateTime(new Date())
                 .withCallerId(headerWrapper.getHeader(HttpHeaderKeysEnum.CALLER_ID.key()))
                 .withClientAddress(httpRequest.getRemoteAddr())
