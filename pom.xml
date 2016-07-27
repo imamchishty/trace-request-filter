@@ -67,7 +67,14 @@
         <dependency>
             <groupId>com.shedhack.trace</groupId>
             <artifactId>trace-request-api</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Json for the default trace request interceptor -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.7</version>
         </dependency>
 
         <!-- Logging, actual implementation needs to be provided by consumer of the filters -->

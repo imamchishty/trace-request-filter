@@ -1,5 +1,6 @@
 package com.shedhack.filter.requestid;
 
+import com.google.gson.Gson;
 import com.shedhack.trace.request.filter.DefaultTraceRequestInterceptor;
 import com.shedhack.trace.request.filter.RequestTraceFilter;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class RequestIdFilterTest {
     public void should_add_requestId_to_headers() throws IOException, ServletException {
 
         // Arrange
-        RequestTraceFilter filter = new RequestTraceFilter("appName", new DefaultTraceRequestInterceptor());
+        RequestTraceFilter filter = new RequestTraceFilter("appName", new DefaultTraceRequestInterceptor(new Gson()));
 
         // Act
        // filter.doFilter(request, response, chain);
