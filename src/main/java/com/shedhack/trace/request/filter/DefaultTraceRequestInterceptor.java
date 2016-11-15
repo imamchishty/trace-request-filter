@@ -39,7 +39,8 @@ public class DefaultTraceRequestInterceptor implements TraceRequestInterceptor {
      * {@inheritDoc}
      */
     public void onExit(RequestModel request) {
-        if(request != null) {
+
+        if(request != null && LOGGER.isInfoEnabled()) {
             LOGGER.info(gson.toJson(request));
         }
     }

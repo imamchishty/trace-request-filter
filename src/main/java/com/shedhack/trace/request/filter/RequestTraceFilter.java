@@ -192,7 +192,7 @@ public class RequestTraceFilter implements Filter {
     }
 
     private RequestModel build(HttpServletRequest httpRequest, String spanId, String traceId) {
-
+        
         return new DefaultRequestModel().builder(appId, spanId, traceId)
                 .withRequestDateTime(new Date().getTime())
                 .withClientAddress(httpRequest.getRemoteAddr())
